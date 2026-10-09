@@ -1,13 +1,130 @@
-<!doctype html>
+<!DOCTYPE html>
 <html lang="pt-BR">
-  <head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Meu Nome, Minhas Letras</title>
-  </head>
-  <body class="bg-[#F9FAFC] text-gray-800 antialiased">
-    <div id="root"></div>
-    <!-- Apontando para o main.jsx na raiz -->
-    <script type="module" src="/main.jsx"></script>
-  </body>
+    <!-- Tailwind CSS via CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- React e ReactDOM via CDN -->
+    <script crossorigin src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
+    <script crossorigin src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
+    <!-- Babel para compilar JSX no navegador em tempo de execução -->
+    <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+</head>
+<body class="bg-[#F9FAFC] text-gray-800 antialiased min-h-screen flex flex-col">
+    <div id="root" class="flex-1 flex flex-col"></div>
+
+    <script type="text/babel">
+        const { useState, useEffect } = React;
+
+        // --- COMPONENTE: TELA DE ACOLHIMENTO ---
+        function Acolhimento({ onAvancar }) {
+            return (
+                <div className="flex-1 flex flex-col items-center justify-center p-6 text-center">
+                    <div className="max-w-md bg-white rounded-3xl shadow-xl p-8 border-4 border-indigo-100">
+                        <span className="text-6xl mb-4 inline-block">✨</span>
+                        <h1 className="text-3xl font-extrabold text-indigo-600 mb-3">Meu Nome, Minhas Letras</h1>
+                        <p className="text-gray-600 mb-6">Um espaço mágico de apoio à alfabetização com inteligência artificial, seguro e acolhedor (LGPD/ECA).</p>
+                        <button 
+                            onClick={onAvancar}
+                            className="w-full bg-indigo-600 hover:bg-indigo-700 text-white font-bold py-3 px-6 rounded-2xl shadow-lg transition transform hover:-translate-y-0.5 text-lg">
+                            Começar Jornada 🚀
+                        </button>
+                    </div>
+                </div>
+            );
+        }
+
+        // --- COMPONENTE: MODO IA (GROQ API) ---
+        function ModoIA() {
+            const [prompt, setPrompt] = useState("");
+            const [resposta, setResposta] = useState("");
+            const [loading, setLoading] = useState(false);
+
+            const consultarGroq = async () => {
+                if (!prompt.trim()) return;
+                setLoading(true);
+                setResposta("");
+
+                try {
+                    // Chave ou Endpoint configurável
+                    const res = await fetch("https://api.groq.com/openai/v1/chat/completions", {
+                        method: "POST",
+                        headers: {
+                            "Content-Type": "application/json",
+                            "Authorization": `Bearer ${window.ENV_GROQ_KEY || "SUA_CHAVE_AQUI"}`
+                        },
+                        body: JSON.stringify({
+                            model: "llama3-8b-8192",
+                            messages: [
+                                { role: "system", content: "Você é um assistente pedagógico especializado em alfabetização infantil no Brasil, acolhedor e lúdico." },
+                                { role: "user", content: prompt }
+                            ]
+                        })
+                    });
+                    const data = await res.json();
+                    setResposta(data.choices?.[0]?.message?.content || "Não foi possível gerar a resposta.");
+                } catch (err) {
+                    setResposta("Erro ao conectar com a IA da Groq. Verifique a chave de API.");
+                } finally {
+                    setLoading(false);
+                }
+            };
+
+            return (
+                <div className="p-6 max-w-2xl mx-auto w-full">
+                    <div className="bg-white rounded-2xl shadow-md p-6 border border-gray-100">
+                        <h2 className="text-2xl font-bold text-indigo-700 mb-2">🤖 Assistente Pedagógico (Groq IA)</h2>
+                        <p className="text-sm text-gray-500 mb-4">Digite uma dúvida ou palavra para gerar atividades de apoio à alfabetização:</p>
+                        <textarea 
+                            value={prompt}
+                            onChange={(e) => setPrompt(e.target.value)}
+                            placeholder="Ex: Crie uma atividade lúdica com a letra 'M' para crianças de 6 anos..."
+                            className="w-full p-3 border rounded-xl mb-3 focus:ring-2 focus:ring-indigo-500 outline-none"
+                            rows="3"
+                        />
+                        <button 
+                            onClick={consultarGroq}
+                            disabled={loading}
+                            className="bg-indigo-600 hover:bg-indigo-700 text-white font-semibold py-2 px-6 rounded-xl transition">
+                            {loading ? "Pensando..." : "Gerar Atividade ✨"}
+                        </button>
+                        {resposta && (
+                            <div className="mt-4 p-4 bg-indigo-50 rounded-xl text-gray-700 whitespace-pre-wrap border border-indigo-100">
+                                {resposta}
+                            </div>
+                        )}
+                    </div>
+                </div>
+            );
+        }
+
+        // --- APLICATIVO PRINCIPAL ---
+        function App() {
+            const [tela, setTela] = useState('acolhimento');
+
+            return (
+                <div className="min-h-screen flex flex-col bg-[#F9FAFC]">
+                    <header className="bg-white shadow-sm py-4 px-6 flex justify-between items-center">
+                        <h1 className="font-bold text-indigo-600 text-xl cursor-pointer" onClick={() => setTela('acolhimento')}>
+                            ✨ Meu Nome, Minhas Letras
+                        </h1>
+                        <nav className="space-x-4">
+                            <button onClick={() => setTela('acolhimento')} className="text-gray-600 hover:text-indigo-600 font-medium">Início</button>
+                            <button onClick={() => setTela('ia')} className="text-gray-600 hover:text-indigo-600 font-medium">Modo IA</button>
+                        </nav>
+                    </header>
+
+                    <main className="flex-1 flex flex-col">
+                        {tela === 'acolhimento' && <Acolhimento onAvancar={() => setTela('ia')} />}
+                        {tela === 'ia' && <ModoIA />}
+                    </main>
+                </div>
+            );
+        }
+
+        ReactDOM.render(<App />, document.getElementById('root'));
+    </script>
+</body>
 </html>
