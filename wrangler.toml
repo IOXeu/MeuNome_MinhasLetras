@@ -1,0 +1,5 @@
+name = "meunome-minhasletras"
+compatibility_date = "2026-10-09"
+
+[site]
+bucket = "./dist"
