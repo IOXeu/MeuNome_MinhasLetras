@@ -71,3 +71,53 @@ export default function App() {
               </button>
             </div>
           )}
+          {modulo === 'ia' && objeto && (
+            <div className="flex flex-col items-center gap-4 text-center">
+              <h3 className="font-black text-lg text-slate-800">{objeto.nome}</h3>
+              <div className="flex gap-2">
+                {objeto.silabas.map((s, i) => (
+                  <span key={i} className="px-3 py-1.5 bg-amber-300 rounded-xl font-black text-sm text-amber-950 border border-amber-400">{s}</span>
+                ))}
+              </div>
+              <button 
+                onClick={() => { 
+                  setEstudante({
+                    ...estudante, 
+                    pontos: estudante.pontos + 50,
+                    letras: [...new Set([...estudante.letras, objeto.letra])]
+                  }); 
+                  setHistorico([{ id: Date.now(), objeto: objeto.nome, letra: objeto.letra, data: new Date().toLocaleDateString() }, ...historico]); 
+                  setModulo('acolhimento'); 
+                  falar("Parabéns, você validou a palavra!"); 
+                }} 
+                className="w-full py-3.5 bg-emerald-500 text-white font-black rounded-xl text-sm shadow-sm"
+              >
+                ✅ Confirmar Palavra!
+              </button>
+            </div>
+          )}
+
+          {modulo === 'auditoria' && (
+            <div className="text-xs text-left">
+              <h3 className="font-black text-sm mb-3 text-slate-800 border-b pb-1.5 uppercase tracking-wider">🎓 Relatório do Educador</h3>
+              <p className="text-[10px] text-slate-400 mb-4 font-medium">Histórico de evidências em conformidade com as diretrizes educacionais.</p>
+              {historico.length === 0 ? (
+                <p className="text-slate-400 italic text-center py-6 border border-dashed rounded-xl bg-slate-50">Nenhum registro de leitura nesta sessão.</p>
+              ) : (
+                <div className="max-h-40 overflow-y-auto border border-slate-100 rounded-xl divide-y bg-slate-50">
+                  {historico.map(h => (
+                    <div key={h.id} className="p-2.5 flex justify-between items-center font-bold text-slate-600 bg-white">
+                      <span>{h.objeto}</span>
+                      <span className="bg-indigo-50 text-indigo-600 px-2 py-0.5 rounded text-[10px] font-black">{h.letra}</span>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
+          )}
+        </main>
+
+      </div>
+    </div>
+  );
+}
