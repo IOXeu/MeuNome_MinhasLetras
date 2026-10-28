@@ -1,17 +1,22 @@
-  const falar = (textoOriginal, silabasArray = []) => {
-    if (!('speechSynthesis' in window)) return;
-    window.speechSynthesis.cancel();
+  // Estado para armazenar o banco de palavras carregado do repositório
+  const [bancoPalavras, setBancoPalavras] = useState([]);
 
-    // Se houver sílabas, reconstrói o texto com pausas para a IA falar igual ao seu Python
-    // Exemplo: "BONECA" -> "BO... NE... CA..."
-    const textoTratado = silabasArray.length > 0 
-      ? silabasArray.join('... ') + '...' 
-      : textoOriginal;
+  // Carrega o arquivo JSON assim que o aplicativo inicia na Cloud
+  useEffect(() => {
+    fetch('/dicionario.json') // Lê o arquivo na raiz pública ou caminho do repositório
+      .then(res => res.json())
+      .then(dados => {
+        // Formata os dados para o padrão que a IA e o motor de voz utilizam
+        if (Array.isArray(dados)) setBancoPalavras(dados);
+      })
+      .catch(err => console.log("Modo offline ativo: usando banco reserva."));
+  }, []);
 
-    const utterance = new SpeechSynthesisUtterance(textoTratado.toLowerCase());
-    utterance.lang = 'pt-BR';
-    utterance.rate = 0.75; // Velocidade reduzida para melhor percepção do fonema
-    utterance.pitch = 1.1; // Tom amigável de robô assistente
-    
-    window.speechSynthesis.speak(utterance);
+  // Função para buscar correspondência fônica exata quando a câmera captura um item
+  const buscarMetadadosObjeto = (nomeObjeto) => {
+    const palavraLimpa = nomeObjeto.toLowerCase().strip();
+    return bancoPalavras.find(item => 
+      item.expressao?.toLowerCase() === palavraLimpa || 
+      item.termo?.toLowerCase() === palavraLimpa
+    ) || { expressao: nomeObjeto, texto_fala: nomeObjeto, silabas: [nomeObjeto] };
   };
